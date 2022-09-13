@@ -34,7 +34,7 @@ class VggSign32x32(Model):
                  regularize_weights_shayer=0.0,
                  batchnorm_momentum=0.99,
                  dropout_rate=[0.0, 0.2, 0.2, 0.3, 0.3, 0.3, 0.4, 0.0],
-                 use_gumbel_softmax_reparameterization=True):
+                 use_gumbel_softmax_reparameterization=False):
         super(VggSign32x32, self).__init__()
 
         if initial_weight_type == 'real':

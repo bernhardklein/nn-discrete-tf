@@ -44,7 +44,8 @@ class MnistFullyConnectedNN(Model):
                                                                       regularize_l1=regularize_weights_l1,
                                                                       regularize_l2=regularize_weights_l2)
         elif weight_type == 'normal':
-            create_weights = lambda : NormalWeights( regularize_kl=regularize_weights_l2 ) 
+            #create_weights = lambda : NormalWeights( regularize_kl=regularize_weights_l2 ) 
+            create_weights = lambda : NormalWeights() 
         else:
             raise NotImplementedError('Weighty type \'{}\' not implemented'.format(weight_type))
         
@@ -97,10 +98,8 @@ class MnistFullyConnectedNN(Model):
         if self.dropout3 is not None:
             x = self.dropout3(x, training)
         x = self.dense3(x, training)
-        print(x)
         if self.use_reparameterization:
             x = self.reparam3(x, training)
-        print(x)
         x = self.softmax3(x)
         return x
 

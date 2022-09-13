@@ -43,7 +43,7 @@ class VggSign32x32(Model):
         elif initial_weight_type == 'ternary':
             create_weight_type = lambda : TernaryWeights(regularize_shayer=regularize_weights_shayer)
         elif initial_weight_type == 'normal':
-            create_weight_type = lambda : NormalWeights()
+            create_weight_type = lambda : NormalWeights( regularize_kl=regularize_weights_l2)
         else:
             raise NotImplementedError('Weight type \'{}\' not implemented'.format(initial_weight_type))
         

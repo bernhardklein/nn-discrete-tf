@@ -44,8 +44,8 @@ class MnistFullyConnectedNN(Model):
                                                                       regularize_l1=regularize_weights_l1,
                                                                       regularize_l2=regularize_weights_l2)
         elif weight_type == 'normal':
-            #create_weights = lambda : NormalWeights( regularize_kl=regularize_weights_l2 ) 
-            create_weights = lambda : NormalWeights() 
+            create_weights = lambda : NormalWeights( regularize_kl=regularize_weights_l2 ) 
+            #create_weights = lambda : NormalWeights() 
         else:
             raise NotImplementedError('Weighty type \'{}\' not implemented'.format(weight_type))
         
@@ -81,23 +81,25 @@ class MnistFullyConnectedNN(Model):
         self.softmax3 = Softmax()
 
     
-    def call(self, x, training):
+    def call(self, x, training, use_sampled_weights=False):
+        if training:
+            use_sampled_weights=False
         # Layer 1
         if self.dropout1 is not None:
             x = self.dropout1(x, training)
-        x = self.dense1(x, training)
+        x = self.dense1(x, training, use_sampled_weights=use_sampled_weights)
         x = self.batchnorm1(x, training)
         x = self.act1(x, training)
         # Layer 2
         if self.dropout2 is not None:
             x = self.dropout2(x, training)
-        x = self.dense2(x, training)
+        x = self.dense2(x, training, use_sampled_weights=use_sampled_weights)
         x = self.batchnorm2(x, training)
         x = self.act2(x, training)
         # Layer 3
         if self.dropout3 is not None:
             x = self.dropout3(x, training)
-        x = self.dense3(x, training)
+        x = self.dense3(x, training, use_sampled_weights=use_sampled_weights)
         if self.use_reparameterization:
             x = self.reparam3(x, training)
         x = self.softmax3(x)

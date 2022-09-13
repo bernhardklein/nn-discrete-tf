@@ -82,8 +82,6 @@ class MnistFullyConnectedNN(Model):
 
     
     def call(self, x, training, use_sampled_weights=False):
-        if training:
-            use_sampled_weights=False
         # Layer 1
         if self.dropout1 is not None:
             x = self.dropout1(x, training)
@@ -102,6 +100,9 @@ class MnistFullyConnectedNN(Model):
         x = self.dense3(x, training, use_sampled_weights=use_sampled_weights)
         if self.use_reparameterization:
             x = self.reparam3(x, training)
+        if not training:
+            tf.print('mean:', tf.reduce_mean(x[0]))
+            tf.print('var:', tf.reduce_mean(x[1]))
         x = self.softmax3(x)
         return x
 

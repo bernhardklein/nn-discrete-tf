@@ -30,7 +30,7 @@ class pfpBayesianMLP(Model):
                  activation='relu',
                  regularize_kl=0.0,
                  use_reparameterization=False):
-        super(MnistFullyConnectedNN, self).__init__()
+        super(pfpBayesianMLP, self).__init__()
 
         self.batchnorm_momentum = batchnorm_momentum
         if weight_type == 'real':

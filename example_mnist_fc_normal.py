@@ -29,16 +29,14 @@ class pfpBayesianMLP(Model):
                  weight_type='normal',
                  activation='relu',
                  regularize_kl=0.0,
-                 use_reparameterization=False):
+                 use_reparameterization=True):
         super(pfpBayesianMLP, self).__init__()
 
-        self.batchnorm_momentum = batchnorm_momentum
-        if weight_type == 'real':
-            create_weights = lambda : RealWeights(regularize_l1=regularize_weights_l1,
-                                                  regularize_l2=regularize_weights_l2)
-        elif weight_type == 'normal':
+        #if weight_type == 'real':
+        #    create_weights = lambda : RealWeights(regularize_l1=regularize_weights_l1,
+        #                                          regularize_l2=regularize_weights_l2)
+        if weight_type == 'normal':
             create_weights = lambda : NormalWeights( regularize_kl=regularize_kl ) 
-            #create_weights = lambda : NormalWeights() 
         else:
             raise NotImplementedError('Weighty type \'{}\' not implemented'.format(weight_type))
         

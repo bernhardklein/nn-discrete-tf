@@ -76,7 +76,7 @@ class pfpBayesianMLP(Model):
         x = self.dense3(x, training, use_sampled_weights=use_sampled_weights)
         if self.use_reparameterization:
             x = self.reparam3(x, training)
-        if not training and False:
+        if not training:
             tf.print('mean:', tf.reduce_mean(x[0]))
             tf.print('var:', tf.reduce_mean(x[1]))
         x = self.softmax3(x)

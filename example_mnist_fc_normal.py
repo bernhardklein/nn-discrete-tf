@@ -198,7 +198,7 @@ enable_sign_activations = False
 #                              dropout_rate=[0.2, 0.4, 0.4])
 model = pfpBayesianMLP(weight_type='normal' if enable_normal_weights else 'real',
                               activation='sign' if enable_sign_activations else 'relu',
-                              regularize_kl=1e-2)
+                              regularize_kl=0.0)
 
 
 

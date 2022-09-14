@@ -24,6 +24,70 @@ from layers.weights.NormalWeights import NormalWeights
 
 #-----------------------------------------------------------------------------------------------------------------------
 # Fully connected model with support for quantized weights and activations using the straight-through gradient estimator
+class pfpBayesianMLP(Model):
+    def __init__(self,
+                 weight_type='normal',
+                 activation='relu',
+                 regularize_kl=0.0,
+                 use_reparameterization=False):
+        super(MnistFullyConnectedNN, self).__init__()
+
+        self.batchnorm_momentum = batchnorm_momentum
+        if weight_type == 'real':
+            create_weights = lambda : RealWeights(regularize_l1=regularize_weights_l1,
+                                                  regularize_l2=regularize_weights_l2)
+        elif weight_type == 'normal':
+            create_weights = lambda : NormalWeights( regularize_kl=regularize_kl ) 
+            #create_weights = lambda : NormalWeights() 
+        else:
+            raise NotImplementedError('Weighty type \'{}\' not implemented'.format(weight_type))
+        
+        if activation == 'relu':
+            create_activation = lambda : DistReLU()
+        elif activation == 'sign':
+            create_activation = lambda : DistSign(has_zero_output=False, straight_through_type='tanh')
+        else:
+            raise NotImplementedError('Activation \'{}\' not implemented'.format(activation))
+
+        self.use_reparameterization = use_reparameterization
+        if use_reparameterization:
+            create_reparameterization_final = lambda: DistReparameterization(mode='NORMAL')
+
+        # Layer 1
+        self.dense1 = DistDense(100, create_weights(), use_bias=True)
+        self.act1 = create_activation()
+        # Layer 2
+        self.dense2 = DistDense(100, create_weights(), use_bias=True)
+        self.act2 = create_activation()
+        # Layer 3
+        #self.dense3 = DistDense(10, create_weights(), use_bias=True, enable_activation_normalization=True)
+        self.dense3 = DistDense(10, create_weights(), use_bias=True)
+        if use_reparameterization:
+            self.reparam3 = create_reparameterization_final()
+        self.softmax3 = Softmax()
+
+    
+    def call(self, x, training, use_sampled_weights=False):
+        # Layer 1
+        x = self.dense1(x, training, use_sampled_weights=use_sampled_weights)
+        x = self.act1(x, training)
+        # Layer 2
+        x = self.dense2(x, training, use_sampled_weights=use_sampled_weights)
+        x = self.act2(x, training)
+        # Layer 3
+        x = self.dense3(x, training, use_sampled_weights=use_sampled_weights)
+        if self.use_reparameterization:
+            x = self.reparam3(x, training)
+        if not training and False:
+            tf.print('mean:', tf.reduce_mean(x[0]))
+            tf.print('var:', tf.reduce_mean(x[1]))
+        x = self.softmax3(x)
+        return x
+
+#
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Fully connected model with support for quantized weights and activations using the straight-through gradient estimator
 class MnistFullyConnectedNN(Model):
     def __init__(self,
                  weight_type='real',
@@ -129,11 +193,16 @@ test_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(1000).prefe
 # Create the model
 enable_normal_weights = True
 enable_sign_activations = False
-model = MnistFullyConnectedNN(weight_type='normal' if enable_normal_weights else 'real',
+#model = MnistFullyConnectedNN(weight_type='normal' if enable_normal_weights else 'real',
+#                              activation='sign' if enable_sign_activations else 'relu',
+#                              batchnorm_momentum=0.99 if (not enable_normal_weights and not enable_sign_activations) else 0.9,
+#                              regularize_weights_l2=1e-5,
+#                              dropout_rate=[0.2, 0.4, 0.4])
+model = pfpBayesianMLP(weight_type='normal' if enable_normal_weights else 'real',
                               activation='sign' if enable_sign_activations else 'relu',
-                              batchnorm_momentum=0.99 if (not enable_normal_weights and not enable_sign_activations) else 0.9,
-                              regularize_weights_l2=1e-5,
-                              dropout_rate=[0.2, 0.4, 0.4])
+                              regularize_kl=1e-5)
+
+
 
 model(np.ones((2,784), dtype=np.float32), True) # Build the model
 
